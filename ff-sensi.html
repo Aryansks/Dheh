@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Fire Max Sensi</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#000;color:#fff;text-align:center;padding:20px}
+input,button,select{padding:10px;margin:5px;border-radius:6px;border:1px solid #555;background:#111;color:#fff}
+button{cursor:pointer;font-weight:bold}
+.neon{background:linear-gradient(90deg,#ff3b3b,#ff8a00);color:#fff;border:none}
+.hidden{display:none}
+.container{max-width:500px;margin:auto}
+.card{background:#111;padding:15px;margin:10px;border-radius:10px;border:1px solid #444}
+</style>
+</head>
+<body>
+<div class="container">
+<div id="login" class="card">
+<h2>PRO PLAYER LOGIN</h2>
+<input type="text" id="username" placeholder="Username"><br>
+<input type="password" id="password" placeholder="Password"><br>
+<button class="neon" onclick="login()">Login</button>
+</div>
+
+<div id="home" class="card hidden">
+<h2>Welcome <span id="uname"></span></h2>
+<button class="neon" onclick="openSensi()">SENSI</button>
+<div id="cartArea"></div>
+</div>
+
+<div id="sensi" class="card hidden">
+<h2>Select Company</h2>
+<select id="companySelect" onchange="loadModels()"></select><br>
+<div id="modelList"></div>
+</div>
+
+<div id="purchaseForm" class="card hidden">
+<h3>Purchase</h3>
+<input id="fname" placeholder="First Name"><br>
+<input id="lname" placeholder="Last Name"><br>
+<input id="uid" placeholder="In-game UID"><br>
+<button class="neon" onclick="sendRequest()">Send Request</button>
+</div>
+
+<div id="sensiResult" class="card hidden">
+<h3>Your Free Fire Sensitivity</h3>
+<div id="sensiValues"></div>
+</div>
+
+<div id="devPanel" class="card hidden">
+<h2>Developer Panel</h2>
+<div id="requests"></div>
+</div>
+</div>
+
+<script>
+const TOP_COMPANIES = {
+"Apple":["iPhone 14","iPhone 14 Pro","iPhone 14 Pro Max","iPhone 15","iPhone 15 Pro"],
+"Samsung":["S21","S21+","S21 Ultra","S22","S22+","S22 Ultra","A53","A73","Z Fold 4","Z Flip 4"],
+"Xiaomi":["Mi 11","Mi 11 Pro","Redmi Note 11","Redmi Note 12","Poco X4","Poco F4"],
+"OnePlus":["9","9 Pro","10","10 Pro","10T"],
+"Google":["Pixel 6","Pixel 6 Pro","Pixel 7","Pixel 7 Pro"],
+"Motorola":["Edge 20","Edge 21","G100","G200"],
+"Oppo":["Find X3","Find X3 Pro","Reno 6","Reno 7"],
+"Vivo":["X70","X80","V21","V23"],
+"Realme":["GT 2","GT 2 Pro","Narzo 50","Narzo 60"],
+"Huawei":["P50","P50 Pro","Mate 40","Mate 40 Pro"],
+"Sony":["Xperia 5","Xperia 1"],
+"Asus":["Zenfone 8","ROG Phone 6"],
+"LG":["V60","G8"],
+"Nokia":["X20","G50"],
+"HTC":["U20","Desire 21"],
+"ZTE":["Axon 30","Blade 11"],
+"Honor":["50","60"],
+"Lenovo":["Legion Phone Duel","K13"],
+"Meizu":["18","18 Pro"],
+"Poco":["F3","X3 Pro"],
+"Infinix":["Zero 20","Note 12"],
+"Tecno":["Camon 18","Camon 19"],
+"iQOO":["iQOO 9","iQOO 10"],
+"Nothing":["Phone 2","Phone 3"],
+"Duoqin":["Qin 3 Ultra"],
+"Lava":["Agni 2","Lava Blaze Pro"],
+"Micromax":["In Note 2","In 2b"],
+"Karbonn":["Titanium X","K9 Smart"],
+"Spice":["Stellar Mi-508","Smart Flo"]
+};
+
+let user=null;
+let cart=[];
+let requests=[];
+let sensitivities={};
+
+function login(){
+  const u=document.getElementById('username').value;
+  const p=document.getElementById('password').value;
+  if(u==='dev999' && p==='devpass'){
+    user={username:u,type:'dev'};
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('devPanel').classList.remove('hidden');
+    renderRequests();
+  }else if(u!==''){
+    user={username:u,type:'user'};
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('home').classList.remove('hidden');
+    document.getElementById('uname').innerText=u;
+    populateCompanies();
+  }else{
+    alert('Enter username');
+  }
+}
+
+function populateCompanies(){
+  const select=document.getElementById('companySelect');
+  select.innerHTML='';
+  Object.keys(TOP_COMPANIES).forEach(c=>{
+    let opt=document.createElement('option');opt.value=c;opt.innerText=c;
+    select.appendChild(opt);
+  });
+  loadModels();
+}
+
+function loadModels(){
+  const company=document.getElementById('companySelect').value;
+  const modelDiv=document.getElementById('modelList');
+  modelDiv.innerHTML='';
+  TOP_COMPANIES[company].forEach(m=>{
+    let b=document.createElement('button');b.innerText=m;b.className='neon';
+    b.onclick=()=>{cart.push({company:company,model:m});alert(m+' added to cart');showPurchaseForm();};
+    modelDiv.appendChild(b);
+  });
+}
+
+function showPurchaseForm(){document.getElementById('purchaseForm').classList.remove('hidden');}
+
+function sendRequest(){
+  const fname=document.getElementById('fname').value;
+  const lname=document.getElementById('lname').value;
+  const uid=document.getElementById('uid').value;
+  if(!fname||!lname||!uid){alert('Fill all fields');return;}
+  cart.forEach(item=>{requests.push({user:user.username,company:item.company,model:item.model,fname,fname,lname,uid});});
+  cart=[];document.getElementById('purchaseForm').classList.add('hidden');alert('Request sent to developer');renderRequests();}
+
+function renderRequests(){
+  if(user.type!=='dev')return;
+  const div=document.getElementById('requests');div.innerHTML='';
+  requests.forEach((r,i)=>{
+    let c=document.createElement('div');c.className='card';c.innerHTML=
+      `<b>${r.user}</b> requested ${r.company} ${r.model}<br>`+
+      `<button onclick="accept(${i})" class="neon">Accept</button> `+
+      `<button onclick="reject(${i})">Reject</button>`;
+    div.appendChild(c);
+  });
+}
+
+function accept(i){
+  const r=requests[i];
+  sensitivities[r.user]={General:95,RedDot:92,TwoX:90,FourX:86,AWM:83,FreeLook:100};
+  requests.splice(i,1);renderRequests();
+  alert(r.user+"'s sensitivity approved!");
+  if(user.type!=='dev' && r.user===user.username){showSensitivity();}
+}
+
+function reject(i){requests.splice(i,1);renderRequests();alert('Request rejected');}
+
+function showSensitivity(){
+  if(sensitivities[user.username]){
+    const div=document.getElementById('sensiResult');div.classList.remove('hidden');
+    let s=sensitivities[user.username];let html='';
+    for(const k in s){html+=`${k}: ${s[k]}<br>`;}
+    document.getElementById('sensiValues').innerHTML=html;
+  }
+}
+
+</script>
+</body></html>
